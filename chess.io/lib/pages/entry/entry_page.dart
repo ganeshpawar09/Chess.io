@@ -66,20 +66,20 @@ class _EntryPageState extends State<EntryPage> {
     }
   }
 
-  void reJoinRoomSocket() async {
-    try {
-      if (_name.text.isEmpty || _roomName.text.isEmpty) {
-        showCustomSnackBar(context, "Name or Room Name is empty");
-      } else {
-        if (mounted) {
-          await Provider.of<SocketIo>(context, listen: false)
-              .rejoinRoom(_name.text, _roomName.text);
-        }
-      }
-    } catch (e) {
-      print("Something went wrong while creating room");
-    }
-  }
+  // void reJoinRoomSocket() async {
+  //   try {
+  //     if (_name.text.isEmpty || _roomName.text.isEmpty) {
+  //       showCustomSnackBar(context, "Name or Room Name is empty");
+  //     } else {
+  //       if (mounted) {
+  //         await Provider.of<SocketIo>(context, listen: false)
+  //             .rejoinRoom(_name.text, _roomName.text);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print("Something went wrong while creating room");
+  //   }
+  // }
 
   void next() {
     try {
@@ -269,25 +269,25 @@ class _EntryPageState extends State<EntryPage> {
                             const SizedBox(
                               height: 20,
                             ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: customYellow,
-                                  side: BorderSide.none,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5)),
-                                  minimumSize: const Size(200, 40)),
-                              onPressed: () {
-                                _focusNode.unfocus();
-                                reJoinRoomSocket();
-                              },
-                              child: Text(
-                                "Re-Join Room",
-                                style: AppStyles.mondaB.copyWith(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ),
+                            // ElevatedButton(
+                            //   style: ElevatedButton.styleFrom(
+                            //       backgroundColor: customYellow,
+                            //       side: BorderSide.none,
+                            //       shape: RoundedRectangleBorder(
+                            //           borderRadius: BorderRadius.circular(5)),
+                            //       minimumSize: const Size(200, 40)),
+                            //   onPressed: () {
+                            //     _focusNode.unfocus();
+                            //     reJoinRoomSocket();
+                            //   },
+                            //   child: Text(
+                            //     "Re-Join Room",
+                            //     style: AppStyles.mondaB.copyWith(
+                            //       color: Colors.black,
+                            //       fontSize: 18,
+                            //     ),
+                            //   ),
+                            // ),
                             const SizedBox(
                               height: 20,
                             ),
