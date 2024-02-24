@@ -30,6 +30,7 @@ class SocketIo extends ChangeNotifier {
       try {
         sendGameAlert(roomName, "Game Over",
             "The game has ended in a draw. Both players agreed to a draw.");
+        Navigator.pop(context);
       } catch (e) {
         print("Something went wrong while sending alert: $e");
       }
@@ -63,13 +64,7 @@ class SocketIo extends ChangeNotifier {
           } catch (e) {
             print("Something went wrong while receiving data: $e");
           }
-          try {
-            socket!.on("error", (data) {
-              showSnackbar(tempContext, data['error']);
-            });
-          } catch (e) {
-            print("Something went wrong while receiving data: $e");
-          }
+
           try {
             socket!.on("newAlert", (data) async {
               if (data['title'] == "Draw Proposal") {
@@ -81,39 +76,29 @@ class SocketIo extends ChangeNotifier {
               }
             });
           } catch (e) {
-            print("Something went wrong while receiving data: $e");
+            print("Something went wrong while showing alert: $e");
           }
           try {
-            socket!.on("joined", (data) {
+            socket!.on("error", (data) async {
+              showSnackbar(tempContext, data.toString());
+            });
+          } catch (e) {
+            print("Something went wrong while showing error: $e");
+          }
+          try {
+            socket!.on("joined", (data) async {
               String name = data['userName'];
-              if (name != null) {
-                showSnackbar(tempContext, "${data['userName']} join the room");
-
-                (data['userName'] == globalRoom!.creatorName)
-                    ? globalRoom!.creatorName = name
-                    : globalRoom!.opponentName = name;
-                notifyListeners();
+              showSnackbar(context, "$name join the room");
+              if (data['userName'] == globalRoom!.creatorName) {
+                globalRoom!.creatorName = name;
+              } else {
+                globalRoom!.opponentName = name;
               }
+              notifyListeners();
             });
           } catch (e) {
             print("Something went wrong while receiving data: $e");
           }
-          try {
-            socket!.on("rejoined", (data) {
-              String name = data['userName'];
-              if (name != null) {
-                showSnackbar(tempContext, "${data['userName']} join the room");
-
-                (data['userName'] == globalRoom!.creatorName)
-                    ? globalRoom!.creatorName = name
-                    : globalRoom!.opponentName = name;
-                notifyListeners();
-              }
-            });
-          } catch (e) {
-            print("Something went wrong while receiving data: $e");
-          }
-
           try {
             socket!.on("joined-room", (data) {
               print(data);
@@ -128,7 +113,6 @@ class SocketIo extends ChangeNotifier {
             notifyListeners();
             print("Something went wrong while receiving data: $e");
           }
-
           try {
             socket!.on("room-created", (data) {
               print(data);
@@ -138,20 +122,6 @@ class SocketIo extends ChangeNotifier {
               notifyListeners();
               print('Room Name: ${globalRoom!.roomName}');
               print('User Name: ${globaluser!.userName}');
-            });
-          } catch (e) {
-            isLoading = false;
-            notifyListeners();
-            print("Something went wrong while receiving data: $e");
-          }
-
-          try {
-            socket!.on("rejoined-room", (data) {
-              print(data);
-              globalRoom = Room.fromJson(data['room']);
-              globaluser = User.fromJson(data['user']);
-              isLoading = false;
-              notifyListeners();
             });
           } catch (e) {
             isLoading = false;
@@ -192,13 +162,14 @@ class SocketIo extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      print("$userName is join the $roomName");
+      print("$userName is joining the room $roomName");
 
       socket!.emit("create-room", {"roomName": roomName, "userName": userName});
+      print("hello");
     } catch (e) {
       isLoading = false;
       notifyListeners();
-      print("Error sending new board: $e");
+      print("Error sending new board: $e\nStackTrace: ${e}");
     }
   }
 
@@ -208,20 +179,6 @@ class SocketIo extends ChangeNotifier {
       notifyListeners();
       print("$userName is join the $roomName");
       socket!.emit("join-room", {"roomName": roomName, "userName": userName});
-    } catch (e) {
-      isLoading = false;
-      notifyListeners();
-      print("Error sending new board: $e");
-    }
-  }
-
-  Future<void> rejoinRoom(String userName, String roomName) async {
-    try {
-      isLoading = true;
-      notifyListeners();
-      print("$userName is join the $roomName");
-
-      socket!.emit("rejoin-room", {"roomName": roomName, "userName": userName});
     } catch (e) {
       isLoading = false;
       notifyListeners();
@@ -240,7 +197,6 @@ class SocketIo extends ChangeNotifier {
   Future<void> disconnectFromSocket(BuildContext context) async {
     try {
       socket!.emit("disconnect");
-
       await socket!.disconnect();
     } catch (e) {
       print('Error disconnecting from socket: $e');

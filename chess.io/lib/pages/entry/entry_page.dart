@@ -38,12 +38,15 @@ class _EntryPageState extends State<EntryPage> {
 
   void createRoomSocket() async {
     try {
-      if (_name.text.isEmpty || _roomName.text.isEmpty) {
+      String name = _name.text.toString();
+      String roomName = _roomName.text.toString();
+
+      if (name.isEmpty || roomName.isEmpty) {
         showCustomSnackBar(context, "Name or Room Name is empty");
       } else {
         if (mounted) {
           await Provider.of<SocketIo>(context, listen: false)
-              .createRoom(_name.text, _roomName.text);
+              .createRoom(name, roomName);
         }
       }
     } catch (e) {
@@ -53,33 +56,21 @@ class _EntryPageState extends State<EntryPage> {
 
   void joinRoomSocket() async {
     try {
-      if (_name.text.isEmpty || _roomName.text.isEmpty) {
+      String name = _name.text.toString();
+      String roomName = _roomName.text.toString();
+
+      if (name.isEmpty || roomName.isEmpty) {
         showCustomSnackBar(context, "Name or Room Name is empty");
       } else {
         if (mounted) {
           await Provider.of<SocketIo>(context, listen: false)
-              .joinRoom(_name.text, _roomName.text);
+              .joinRoom(name, roomName);
         }
       }
     } catch (e) {
       print("Something went wrong while creating room");
     }
   }
-
-  // void reJoinRoomSocket() async {
-  //   try {
-  //     if (_name.text.isEmpty || _roomName.text.isEmpty) {
-  //       showCustomSnackBar(context, "Name or Room Name is empty");
-  //     } else {
-  //       if (mounted) {
-  //         await Provider.of<SocketIo>(context, listen: false)
-  //             .rejoinRoom(_name.text, _roomName.text);
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print("Something went wrong while creating room");
-  //   }
-  // }
 
   void next() {
     try {
@@ -99,6 +90,8 @@ class _EntryPageState extends State<EntryPage> {
   void initState() {
     super.initState();
     socketInit();
+    socketDispose();
+
     _focusNode.requestFocus();
   }
 
@@ -106,7 +99,6 @@ class _EntryPageState extends State<EntryPage> {
   void dispose() {
     _focusNode.dispose();
     _name.dispose();
-    socketDispose();
     super.dispose();
   }
 
@@ -179,34 +171,8 @@ class _EntryPageState extends State<EntryPage> {
                                 CircularProgressIndicator(color: Colors.black),
                           ),
                         );
-                      } else if (value.globalRoom != null &&
-                          value.globaluser != null) {
-                        return Column(
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: customYellow,
-                                  side: BorderSide.none,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5)),
-                                  minimumSize: const Size(200, 40)),
-                              onPressed: () {
-                                next();
-                              },
-                              child: Text(
-                                "Play Now",
-                                style: AppStyles.mondaB.copyWith(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 30,
-                            )
-                          ],
-                        );
-                      } else {
+                      } else if (value.globalRoom == null &&
+                          value.globaluser == null) {
                         return Column(
                           children: [
                             Row(
@@ -269,28 +235,35 @@ class _EntryPageState extends State<EntryPage> {
                             const SizedBox(
                               height: 20,
                             ),
-                            // ElevatedButton(
-                            //   style: ElevatedButton.styleFrom(
-                            //       backgroundColor: customYellow,
-                            //       side: BorderSide.none,
-                            //       shape: RoundedRectangleBorder(
-                            //           borderRadius: BorderRadius.circular(5)),
-                            //       minimumSize: const Size(200, 40)),
-                            //   onPressed: () {
-                            //     _focusNode.unfocus();
-                            //     reJoinRoomSocket();
-                            //   },
-                            //   child: Text(
-                            //     "Re-Join Room",
-                            //     style: AppStyles.mondaB.copyWith(
-                            //       color: Colors.black,
-                            //       fontSize: 18,
-                            //     ),
-                            //   ),
-                            // ),
                             const SizedBox(
                               height: 20,
                             ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: customYellow,
+                                  side: BorderSide.none,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5)),
+                                  minimumSize: const Size(200, 40)),
+                              onPressed: () {
+                                next();
+                              },
+                              child: Text(
+                                "Play Now",
+                                style: AppStyles.mondaB.copyWith(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 30,
+                            )
                           ],
                         );
                       }
@@ -308,6 +281,7 @@ class _EntryPageState extends State<EntryPage> {
   Widget customTextField(TextEditingController controller, String title) {
     return TextField(
       controller: controller,
+      keyboardType: TextInputType.text,
       cursorColor: Colors.white,
       style: AppStyles.mondaB.copyWith(
         color: Colors.white,

@@ -1,6 +1,5 @@
 import 'package:chess.io/pages/entry/entry_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'package:chess.io/const/colors.dart';
 import 'package:chess.io/const/font.dart';
@@ -20,12 +19,6 @@ class HomePageState extends State<HomePage> {
     if (mounted) {
       Provider.of<SocketIo>(context, listen: false).tempContext = context;
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    contextChange();
   }
 
   @override
@@ -116,7 +109,7 @@ class HomePageState extends State<HomePage> {
                         ),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 10,
                       ),
                       customNamePlate(opponentName),
                       const SizedBox(
@@ -144,7 +137,7 @@ class HomePageState extends State<HomePage> {
                       const SizedBox(
                         height: 20,
                       ),
-                      customNamePlate(userName)
+                      customNamePlate(userName),
                     ],
                   ),
                 );
@@ -178,7 +171,7 @@ class HomePageState extends State<HomePage> {
         "The game ended in a draw due to threefold repetition.",
       );
     } else if (controller.isInsufficientMaterial()) {
-      sendNewAlertToSocket(
+       sendNewAlertToSocket(
         roomName,
         "Game Over",
         "The game ended in a draw due to insufficient material.",
@@ -216,6 +209,7 @@ class HomePageState extends State<HomePage> {
           "Draw Proposal",
           "Do you agree to a draw?",
         );
+        Navigator.pop(context);
       },
       false,
     );
@@ -223,20 +217,26 @@ class HomePageState extends State<HomePage> {
 }
 
 void leaveFromRoom(BuildContext context, String roomName, String userId) async {
-  Provider.of<SocketIo>(context, listen: false).globaluser = null;
-  Provider.of<SocketIo>(context, listen: false).globalRoom = null;
-  Provider.of<SocketIo>(context, listen: false).isLoading = false;
-  Provider.of<SocketIo>(context, listen: false).opponent =
-      "Waiting for Opponent";
+  try {
+    Provider.of<SocketIo>(context, listen: false).globaluser = null;
+    Provider.of<SocketIo>(context, listen: false).globalRoom = null;
+    Provider.of<SocketIo>(context, listen: false).isLoading = false;
+    Provider.of<SocketIo>(context, listen: false).opponent =
+        "Waiting for Opponent";
 
-  await Provider.of<SocketIo>(context, listen: false)
-      .leaveRoom(roomName, userId);
-
-  Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EntryPage(),
-      ));
+    await Provider.of<SocketIo>(context, listen: false)
+        .leaveRoom(roomName, userId);
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => EntryPage()),
+        (route) => false, // This will remove all routes from the stack
+      );
+    }
+  } catch (error) {
+    print("Error leaving room: $error");
+    // You can also show a custom snackbar or handle the error in another way.
+  }
 }
 
 Future<void> showAlert(BuildContext context, String title, String content,
@@ -258,7 +258,6 @@ Future<void> showAlert(BuildContext context, String title, String content,
               TextButton(
                 onPressed: () async {
                   onYesPressed();
-                  Navigator.pop(context);
                 },
                 child: Text(
                   'Leave Room',
@@ -271,7 +270,6 @@ Future<void> showAlert(BuildContext context, String title, String content,
               TextButton(
                 onPressed: () async {
                   onYesPressed();
-                  Navigator.pop(context);
                 },
                 child: Text(
                   'Yes',
@@ -294,7 +292,9 @@ Future<void> showAlert(BuildContext context, String title, String content,
   );
 }
 
-Widget customNamePlate(String name) {
+Widget customNamePlate(
+  String name,
+) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 15),
     child: Row(
